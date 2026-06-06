@@ -1,0 +1,66 @@
+groups:
+  - name: homelab_alerts
+    rules:
+      - alert: HostDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host {{ $labels.instance }} is down"
+          description: "Instance {{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+
+      - alert: HighCpuUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 90% for more than 5 minutes."
+
+      # Individual Disk Temperature Alerts
+      - alert: KingstonHighTemp
+        expr: smart_temperature_celsius{name="KINGSTON"} > 55
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Overheating: KINGSTON Drive"
+          description: "KINGSTON drive temperature is {{ $value }}°C (limit 55°C)."
+
+      - alert: ToshibaHighTemp
+        expr: smart_temperature_celsius{name="TOSHIBA"} > 55
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Overheating: TOSHIBA Drive"
+          description: "TOSHIBA drive temperature is {{ $value }}°C (limit 55°C)."
+
+      - alert: MediaHighTemp
+        expr: smart_temperature_celsius{name="MEDIA"} > 55
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Overheating: MEDIA Drive"
+          description: "MEDIA drive temperature is {{ $value }}°C (limit 55°C)."
+
+      - alert: InternalDiskHighTemp
+        expr: node_hwmon_temp_celsius{chip="apple_ans2"} > 65 or node_hwmon_temp_celsius{chip="apple_ans3"} > 65
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Overheating: Internal NVMe"
+          description: "Internal SSD temperature is {{ $value }}°C (limit 65°C)."

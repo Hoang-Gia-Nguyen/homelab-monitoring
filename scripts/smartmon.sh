@@ -1,0 +1,39 @@
+#!/bin/bash
+# A simple script to export SMART metrics for Prometheus Node Exporter textfile collector.
+
+echo "# HELP smart_temperature_celsius Temperature of the drive in Celsius"
+echo "# TYPE smart_temperature_celsius gauge"
+
+# List of disks to monitor
+disks="/dev/disk0 /dev/disk6 /dev/disk8 /dev/disk10"
+
+for disk in $disks; do
+  if [ -e "$disk" ]; then
+    # Map device to pretty name
+    case $disk in
+      "/dev/disk0")  name="INTERNAL" ;;
+      "/dev/disk6")  name="KINGSTON" ;;
+      "/dev/disk8")  name="TOSHIBA" ;;
+      "/dev/disk10") name="MEDIA" ;;
+      *)             name="$disk" ;;
+    esac
+
+    dev_label=${disk#/dev/}
+
+    # Get temperature
+    temp=$(sudo smartctl -a "$disk" | grep -i "Temperature:" | head -n 1 | awk '{print $2}')
+    
+    # Fallback for some HDDs
+    if [ -z "$temp" ]; then
+      temp=$(sudo smartctl -a "$disk" | grep "Temperature_Celsius" | awk '{print $10}')
+    fi
+
+    # IF TEMPERATURE IS STILL MISSING, EXPORT A DUMMY VALUE OF 0
+    # This ensures the 'device' to 'name' mapping exists for the I/O graph join
+    if [ -z "$temp" ]; then
+        temp=0
+    fi
+
+    echo "smart_temperature_celsius{device=\"$dev_label\", name=\"$name\"} $temp"
+  fi
+done
