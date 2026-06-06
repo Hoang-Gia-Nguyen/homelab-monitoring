@@ -9,7 +9,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     ports:
-      - "9097:9090"
+      - "9090:9090"
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
