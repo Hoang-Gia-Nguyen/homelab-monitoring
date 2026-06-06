@@ -1,2 +1,5 @@
 extends: default
 rules: {}
+# Disable truthy rule to avoid false positives on the `on:` key
+rules:
+  truthy: disable

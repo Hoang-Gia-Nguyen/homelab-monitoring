@@ -1,3 +1,4 @@
+---
 name: CI Pipeline
 
 on:
@@ -24,7 +25,9 @@ jobs:
           pip install yamllint
           sudo apt-get update && sudo apt-get install -y jq
 
-      # Lint step disabled to avoid yamllint configuration issues
+      - name: Lint YAML files
+        run: |
+          yamllint -c .github/linters/.yamllint.yaml .
 
       - name: Validate JSON files
         run: |
@@ -61,7 +64,8 @@ jobs:
 
       - name: Sanity checks
         run: |
-          curl -sSf http://localhost:9090/api/v1/query?query=up || echo "Prometheus not responding"
+          curl -sSf http://localhost:9090/api/v1/query?query=up \
+            || echo "Prometheus not responding"
 
       - name: Tear down services
         if: always()
