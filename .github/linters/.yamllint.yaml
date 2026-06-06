@@ -1,5 +1,6 @@
 extends: default
 rules:
+  document-start: disable
   line-length: disable
-  indentation: disable
   trailing-spaces: disable
+  indentation: disable
