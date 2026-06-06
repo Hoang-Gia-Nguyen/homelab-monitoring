@@ -1,11 +1,7 @@
 ---
 name: CI Pipeline
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
   lint-and-validate:
@@ -58,7 +54,8 @@ jobs:
 
       - name: Wait for services healthy
         run: |
-          for i in {1..30}; do
+          # Give Prometheus up to ~5 minutes to become ready
+          for i in {1..60}; do
             curl -sSf http://localhost:9090/-/ready && break || sleep 5
           done
 
