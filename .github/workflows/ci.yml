@@ -19,7 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install yamllint
-          sudo apt-get update && sudo apt-get install -y jq
+          sudo apt-get update && sudo apt-get install -y jq gh
 
       - name: Lint YAML files
         run: |
@@ -38,7 +38,7 @@ jobs:
           docker compose config -q || docker-compose config -q || true
 
   integration-tests:
-    if: false  # disabled CI integration tests (requires Docker access)
+    if: true   # enable CI integration tests (requires Docker access)
     needs: lint-and-validate
     runs-on: ubuntu-latest
     steps:
