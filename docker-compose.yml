@@ -52,6 +52,15 @@ services:
       - "9100:9093"
     restart: unless-stopped
 
+  alertmanager-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.alertmanager-bridge
+    container_name: alertmanager-bridge
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   grafana_data:

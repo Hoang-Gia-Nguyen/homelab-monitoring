@@ -29,3 +29,7 @@ scrape_configs:
     scheme: https
     static_configs:
       - targets: ['ne-gc-vm.hgnlab.org']
+
+#   - job_name: 'ci_monitor'
+#     static_configs:
+#       - targets: ['host.docker.internal:9108']
