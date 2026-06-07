@@ -3,7 +3,7 @@ groups:
   - name: homelab_alerts
     rules:
       - alert: HostDown
-        expr: up == 0
+        expr: up{job!="ci_monitor"} == 0
         for: 1m
         labels:
           severity: critical
