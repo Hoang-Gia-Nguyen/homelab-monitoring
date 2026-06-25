@@ -1,0 +1,58 @@
+# yamllint disable rule:line-length
+---
+groups:
+  - name: container_network
+    rules:
+      - record: container_network_error_rate
+        expr: >
+          rate(
+            container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+
+      - record: container_network_drop_rate
+        expr: >
+          rate(
+            container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+
+      - alert: ContainerNetworkErrors
+        expr: >
+          rate(
+            container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Network errors ({{ $labels.container_label_com_docker_compose_service }})
+          description: >
+            {{ $labels.container_label_com_docker_compose_service }}:
+            {{ printf "%.2f" $value }} errors/sec.
+
+      - alert: ContainerNetworkDrops
+        expr: >
+          rate(
+            container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Network drops ({{ $labels.container_label_com_docker_compose_service }})
+          description: >
+            {{ $labels.container_label_com_docker_compose_service }}:
+            {{ printf "%.2f" $value }} drops/sec.

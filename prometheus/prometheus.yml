@@ -9,7 +9,11 @@ alerting:
 
 rule_files:
   - "alert_rules.yml"
+  - "disk_forecast_rules.yml"
   - "macos_compat_rules.yml"
+  - "container_alerts.yml"
+  - "container_name_rules.yml"
+  - "gcp_network_rules.yml"
 
 scrape_configs:
   - job_name: 'prometheus'
@@ -36,6 +40,35 @@ scrape_configs:
   - job_name: 'ci_monitor'
     static_configs:
       - targets: ['ci-monitor:9109']
+
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - 'https://ne-gc-vm.hgnlab.org'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'blackbox_http_internal'
+    metrics_path: /probe
+    params:
+      module: [http_2xx_no_tls]
+    static_configs:
+      - targets: []
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
 
   # Blackbox Exporter — synthetic health checks
   - job_name: 'blackbox_http'

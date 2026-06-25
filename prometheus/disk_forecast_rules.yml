@@ -1,0 +1,51 @@
+---
+# yamllint disable rule:line-length
+groups:
+  - name: disk_forecast
+    rules:
+      # Disk consumption rate in bytes per second (positive when disk is filling up)
+      - record: disk_consumption_bytes_per_sec
+        expr: >
+          deriv(node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h])
+          < 0
+          * -deriv(node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h])
+
+      # Days until each filesystem mount reaches 100% capacity.
+      # Only returns a value when the disk is actively filling up (consumption > 0).
+      - record: predict_days_until_full
+        expr: >
+          disk_consumption_bytes_per_sec > 0
+          * node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
+          / (disk_consumption_bytes_per_sec * 86400)
+
+      # Predict free bytes 7 days from now (for easier alert rule usage)
+      - record: predict_free_bytes_7d
+        expr: >
+          predict_linear(
+            node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h],
+            86400 * 7
+          )
+
+      # Disk usage percentage (for dashboard panels)
+      - record: disk_usage_pct
+        expr: >
+          100 - (
+            node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
+            / node_filesystem_size_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
+            * 100
+          )
+
+      # Forecasted usage percentage 7 days out (for dashboard)
+      - record: disk_forecast_usage_pct_7d
+        expr: >
+          100 - (
+            clamp_min(
+              predict_linear(
+                node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h],
+                86400 * 7
+              ),
+              0
+            )
+            / node_filesystem_size_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
+            * 100
+          )

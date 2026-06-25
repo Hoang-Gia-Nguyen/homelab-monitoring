@@ -103,6 +103,31 @@ services:
       - GH_TOKEN=${GH_TOKEN:-}
     restart: unless-stopped
 
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: loki
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    command:
+      - "-config.file=/etc/loki/config.yml"
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: promtail
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command:
+      - "-config.file=/etc/promtail/config.yml"
+
+    restart: unless-stopped
+
+
   blackbox-exporter:
     image: prom/blackbox-exporter:v0.28.0
     container_name: blackbox-exporter
@@ -115,5 +140,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  loki_data:
+
   prometheus_data:
   grafana_data:

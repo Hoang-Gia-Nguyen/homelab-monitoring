@@ -1,0 +1,23 @@
+# yamllint disable rule:line-length
+---
+groups:
+  - name: gcp_network
+    rules:
+      - record: gcp_egress_bytes_total
+        expr: >
+          node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*|br.*|utun.*"}
+
+      - record: gcp_egress_rate_bytes_per_sec
+        expr: >
+          rate(
+            node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*|br.*|utun.*"}[5m]
+          )
+
+      - record: gcp_egress_rate_gb_per_day
+        expr: >
+          rate(
+            node_network_transmit_bytes_total{device!~"lo|docker.*|veth.*|br.*|utun.*"}[5m]
+          ) * 86400 / 1073741824
+
+      - record: gcp_egress_estimated_cost_per_day
+        expr: gcp_egress_rate_gb_per_day * 0.12

@@ -611,14 +611,14 @@
         "x": 0,
         "y": 0
       },
-      "id": 100,
+      "id": 200,
       "panels": [],
-      "title": "Synthetic Health Checks",
+      "title": "Disk Capacity Forecast",
       "type": "row"
     },
     {
-      "id": 101,
-      "title": "Endpoint Status",
+      "id": 201,
+      "title": "Days Until Full",
       "type": "stat",
       "gridPos": {
         "h": 8,
@@ -643,32 +643,18 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 7
+              },
+              {
                 "color": "green",
-                "value": 1
+                "value": 30
               }
             ]
           },
-          "unit": "none",
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "Down",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "Up",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {},
-              "type": "special",
-              "text": "N/A"
-            }
-          ]
+          "unit": "dtdurations",
+          "mappings": [],
+          "min": 0
         },
         "overrides": []
       },
@@ -693,15 +679,15 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "probe_success{job=\"blackbox_http\"}",
-          "legendFormat": "{{instance}}",
+          "expr": "predict_days_until_full",
+          "legendFormat": "{{mountpoint}}",
           "refId": "A"
         }
       ]
     },
     {
-      "id": 102,
-      "title": "Probe Latency",
+      "id": 202,
+      "title": "Current vs Forecasted Disk Usage",
       "type": "timeseries",
       "gridPos": {
         "h": 8,
@@ -758,9 +744,24 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*forecast.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -783,83 +784,18 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "probe_duration_seconds{job=\"blackbox_http\"}",
-          "legendFormat": "{{instance}}",
+          "expr": "disk_usage_pct",
+          "legendFormat": "{{mountpoint}} (current)",
           "refId": "A"
-        }
-      ]
-    },
-    {
-      "id": 103,
-      "title": "SSL Certificate Expiry",
-      "type": "stat",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 604800
-              },
-              {
-                "color": "green",
-                "value": 2592000
-              }
-            ]
-          },
-          "unit": "s",
-          "mappings": [
-            {
-              "options": {},
-              "type": "special",
-              "text": "N/A"
-            }
-          ]
         },
-        "overrides": []
-      },
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "pluginVersion": "11.3.0",
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "probe_ssl_earliest_cert_expiry - time()",
-          "legendFormat": "{{instance}}",
-          "refId": "A"
+          "expr": "disk_forecast_usage_pct_7d",
+          "legendFormat": "{{mountpoint}} (forecast 7d)",
+          "refId": "B"
         }
       ]
     }
