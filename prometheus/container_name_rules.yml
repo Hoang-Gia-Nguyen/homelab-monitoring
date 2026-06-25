@@ -1,0 +1,11 @@
+# yamllint disable rule:line-length
+---
+groups:
+  - name: container_names
+    rules:
+      - record: container_name
+        expr: >
+          docker_container_info{state="running"}
+          * on(container_id)
+            group_left(container_label_com_docker_compose_service)
+          container_cpu_load_average_10s
