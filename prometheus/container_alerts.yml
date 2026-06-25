@@ -1,45 +1,58 @@
+# yamllint disable rule:line-length
 ---
 groups:
   - name: container_network
     rules:
-      # Network error rate per container (errors/sec)
       - record: container_network_error_rate
         expr: >
-          rate(container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m])
-          + rate(container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m])
+          rate(
+            container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
 
-      # Network drop rate per container (drops/sec)
       - record: container_network_drop_rate
         expr: >
-          rate(container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m])
-          + rate(container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m])
+          rate(
+            container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
 
-      # Container network error alert
       - alert: ContainerNetworkErrors
         expr: >
-          rate(container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m])
-          + rate(container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m])
+          rate(
+            container_network_receive_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_errors_total{container_label_com_docker_compose_service!=""}[5m]
+          )
           > 0
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: Container {{ $labels.container_label_com_docker_compose_service }} has network errors
+          summary: Network errors ({{ $labels.container_label_com_docker_compose_service }})
           description: >
-            Container {{ $labels.container_label_com_docker_compose_service }}
-            has {{ printf "%.2f" $value }} network errors/sec over 5m.
+            {{ $labels.container_label_com_docker_compose_service }}:
+            {{ printf "%.2f" $value }} errors/sec.
 
-      # Container network drop alert
       - alert: ContainerNetworkDrops
         expr: >
-          rate(container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m])
-          + rate(container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m])
+          rate(
+            container_network_receive_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
+          + rate(
+            container_network_transmit_drop_total{container_label_com_docker_compose_service!=""}[5m]
+          )
           > 0
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: Container {{ $labels.container_label_com_docker_compose_service }} has network drops
+          summary: Network drops ({{ $labels.container_label_com_docker_compose_service }})
           description: >
-            Container {{ $labels.container_label_com_docker_compose_service }}
-            has {{ printf "%.2f" $value }} network drops/sec over 5m.
+            {{ $labels.container_label_com_docker_compose_service }}:
+            {{ printf "%.2f" $value }} drops/sec.
