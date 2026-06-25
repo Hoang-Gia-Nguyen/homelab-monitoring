@@ -83,3 +83,19 @@ groups:
           summary: "Overheating: Internal NVMe"
           description: >
             Internal SSD temperature is {{ $value }}°C (limit 65°C).
+
+      # SMART Data Absence Alerts
+      - alert: SmartDataMissing
+        expr: >
+          absent(smart_temperature_celsius{name="KINGSTON"}) or
+          absent(smart_temperature_celsius{name="TOSHIBA"}) or
+          absent(smart_temperature_celsius{name="MEDIA"})
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SMART data missing for a known device"
+          description: >
+            SMART temperature metric has been absent for more than 15 minutes
+            for one or more monitored drives. The smartctl exporter may be
+            failing or the drive may be disconnected.

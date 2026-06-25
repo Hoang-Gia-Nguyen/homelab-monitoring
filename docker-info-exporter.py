@@ -8,6 +8,22 @@ import os
 import json
 import time
 import http.server
+import urllib.request
+import logging
+import sys
+
+# Configure structured logging
+logger = logging.getLogger("docker-info-exporter")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+    )
+)
+logger.addHandler(handler)
+>>>>>>> 0cd8f27 (fix: fix SMART fallback and add structured logging to exporters)
 
 DOCKER_SOCK = os.environ.get("DOCKER_SOCK", "/var/run/docker.sock")
 LISTEN_ADDR = os.environ.get("LISTEN_ADDR", "0.0.0.0")
@@ -16,8 +32,11 @@ REFRESH_INTERVAL = int(os.environ.get("REFRESH_INTERVAL", "15"))
 
 containers = {}
 
+
 def docker_api(path):
     """Call Docker API via Unix socket and return parsed JSON."""
+    import http.client
+>>>>>>> 0cd8f27 (fix: fix SMART fallback and add structured logging to exporters)
     import socket
     sock = None
     try:
@@ -32,8 +51,9 @@ def docker_api(path):
         conn.close()
         return json.loads(body)
     except Exception as e:
-        print(f"[docker-info-exporter] Docker API error ({path}): {e}")
+        logger.error("Docker API error (%s): %s", path, e)
         return None
+
 
 def update_containers():
     global containers
@@ -54,7 +74,8 @@ def update_containers():
             "state": state,
         }
     containers = new_map
-    print(f"[docker-info-exporter] Updated: {len(containers)} containers tracked", flush=True)
+    logger.info("Updated: %d containers tracked", len(containers))
+
 
 def generate_metrics():
     lines = []
@@ -73,6 +94,7 @@ def generate_metrics():
     lines.append("")
     return "\n".join(lines)
 
+
 class MetricsHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/metrics":
@@ -85,16 +107,19 @@ class MetricsHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
+
     def log_message(self, format, *args):
         pass
 
+
 if __name__ == "__main__":
     # Initial fetch
-    print(f"[docker-info-exporter] Connecting to Docker at {DOCKER_SOCK}", flush=True)
+    logger.info("Connecting to Docker at %s", DOCKER_SOCK)
     update_containers()
 
     # Periodic refresh
     import threading
+
     def refresh_loop():
         while True:
             time.sleep(REFRESH_INTERVAL)
@@ -102,10 +127,13 @@ if __name__ == "__main__":
                 update_containers()
             except Exception as e:
                 print(f"[docker-info-exporter] Refresh error: {e}", flush=True)
+            update_containers()
+
+>>>>>>> 0cd8f27 (fix: fix SMART fallback and add structured logging to exporters)
     t = threading.Thread(target=refresh_loop, daemon=True)
     t.start()
 
     # HTTP server
     server = http.server.HTTPServer((LISTEN_ADDR, LISTEN_PORT), MetricsHandler)
-    print(f"[docker-info-exporter] Listening on {LISTEN_ADDR}:{LISTEN_PORT}", flush=True)
+    logger.info("Listening on %s:%d", LISTEN_ADDR, LISTEN_PORT)
     server.serve_forever()
