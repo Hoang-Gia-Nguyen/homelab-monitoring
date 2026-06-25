@@ -103,6 +103,16 @@ services:
       - GH_TOKEN=${GH_TOKEN:-}
     restart: unless-stopped
 
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: blackbox-exporter
+    command:
+      - "--config.file=/config/blackbox.yml"
+    volumes:
+      - ./prometheus/blackbox.yml:/config/blackbox.yml:ro
+    ports:
+      - "9115:9115"
+    restart: unless-stopped
 
 volumes:
   prometheus_data:

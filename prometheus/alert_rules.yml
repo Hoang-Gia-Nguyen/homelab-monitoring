@@ -99,3 +99,34 @@ groups:
             SMART temperature metric has been absent for more than 15 minutes
             for one or more monitored drives. The smartctl exporter may be
             failing or the drive may be disconnected.
+
+      # Blackbox Endpoint Alerts
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Endpoint {{ $labels.instance }} is down"
+          description: >
+            Blackbox probe for {{ $labels.instance }} has failed
+            for more than 1 minute.
+
+      - alert: CertificateExpiry
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: SSL cert for {{ $labels.instance }} expires in < 30d
+          description: >
+            SSL cert for {{ $labels.instance }}
+            expires {{ $value | humanizeTimestamp }}.
+
+      - alert: CertificateExpiryCritical
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: SSL cert for {{ $labels.instance }} expires in < 7d
