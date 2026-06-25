@@ -1,3 +1,5 @@
+# yamllint disable rule:line-length
+---
 global:
   resolve_timeout: 5m
   smtp_from: '{{ .Env.ALERTMANAGER_SMTP_FROM }}'
@@ -14,10 +16,7 @@ route:
   receiver: 'ntfy'
   routes:
     - receiver: 'email-fallback'
-      match_re:
-        # Fallback to email when ntfy receiver is unreachable.
-        # This is a logical route; the actual fallback is handled
-        # by Alertmanager's delivery guarantees.
+      match_re: {}
       continue: false
 
 receivers:
