@@ -2,5 +2,3 @@
 # TYPE smart_temperature_celsius gauge
 smart_temperature_celsius{device="disk0", name="INTERNAL"} 36
 smart_temperature_celsius{device="disk6", name="KINGSTON"} 52
-smart_temperature_celsius{device="disk8", name="TOSHIBA"} 0
-smart_temperature_celsius{device="disk10", name="MEDIA"} 0
