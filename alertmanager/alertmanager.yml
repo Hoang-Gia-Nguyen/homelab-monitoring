@@ -1,5 +1,12 @@
+# yamllint disable rule:line-length
+---
 global:
   resolve_timeout: 5m
+  smtp_from: '{{ .Env.ALERTMANAGER_SMTP_FROM }}'
+  smtp_smarthost: '{{ .Env.ALERTMANAGER_SMTP_HOST }}:{{ .Env.ALERTMANAGER_SMTP_PORT }}'
+  smtp_auth_username: '{{ .Env.ALERTMANAGER_SMTP_USER }}'
+  smtp_auth_password: '{{ .Env.ALERTMANAGER_SMTP_PASS }}'
+  smtp_require_tls: true
 
 route:
   group_by: ['alertname']
@@ -7,6 +14,10 @@ route:
   group_interval: 5m
   repeat_interval: 1h
   receiver: 'ntfy'
+  routes:
+    - receiver: 'email-fallback'
+      match_re: {}
+      continue: false
 
 receivers:
   - name: 'ntfy'
@@ -15,3 +26,17 @@ receivers:
         send_resolved: true
         http_config:
           follow_redirects: true
+
+  - name: 'email-fallback'
+    email_configs:
+      - to: '{{ .Env.ALERTMANAGER_SMTP_FROM }}'
+        send_resolved: true
+        headers:
+          subject: '[{{ .GroupLabels.alertname }}] {{ .Status | toUpper }}'
+        html: >
+          <h2>{{ .Status | toUpper }}: {{ .GroupLabels.alertname }}</h2>
+          {{ range .Alerts }}
+            <p><b>{{ .Labels.severity }}</b>:
+            {{ .Annotations.summary }}</p>
+            <pre>{{ .Annotations.description }}</pre>
+          {{ end }}

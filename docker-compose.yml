@@ -57,6 +57,8 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
+    env_file:
+      - .env
     ports:
       - "9100:9093"
     restart: unless-stopped

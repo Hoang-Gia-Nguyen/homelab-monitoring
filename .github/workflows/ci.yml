@@ -22,9 +22,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y jq gh
 
       - name: Create .env for CI
-        run: |
-          cp .env.example .env
-          echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> .env
+        run: cp .env.example .env
 
       - name: Lint YAML files
         run: |
@@ -42,7 +40,7 @@ jobs:
           docker compose config -q || docker-compose config -q || true
 
   integration-tests:
-    if: true   # enable CI integration tests (requires Docker access)
+    if: true
     needs: lint-and-validate
     runs-on: ubuntu-latest
     steps:
@@ -53,9 +51,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Create .env for CI
-        run: |
-          cp .env.example .env
-          echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> .env
+        run: cp .env.example .env
 
       - name: Pull containers
         run: docker compose pull
