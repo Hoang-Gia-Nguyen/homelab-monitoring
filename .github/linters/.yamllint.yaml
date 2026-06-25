@@ -1,5 +1,3 @@
-# Yamllint configuration for the repository
 extends: default
 rules:
-  truthy: disable
   document-start: disable
