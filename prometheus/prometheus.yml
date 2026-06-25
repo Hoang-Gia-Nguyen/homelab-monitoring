@@ -11,6 +11,8 @@ rule_files:
   - "alert_rules.yml"
   - "disk_forecast_rules.yml"
   - "macos_compat_rules.yml"
+  - "container_alerts.yml"
+  - "container_name_rules.yml"
 
 scrape_configs:
   - job_name: 'prometheus'
