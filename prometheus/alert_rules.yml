@@ -99,3 +99,16 @@ groups:
             SMART temperature metric has been absent for more than 15 minutes
             for one or more monitored drives. The smartctl exporter may be
             failing or the drive may be disconnected.
+
+      # Disk Forecast Alert
+      - alert: DiskWillFillSoon
+        expr: predict_days_until_full < 7
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Disk {{ $labels.mountpoint }} projected to fill within 7 days
+          description: >
+            Mount {{ $labels.mountpoint }} (device {{ $labels.device }}) is
+            projected to reach 100% capacity in approximately
+            {{ $value | humanizeDuration }} at the current consumption rate.
