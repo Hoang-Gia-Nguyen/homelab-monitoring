@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.1
     container_name: prometheus
     volumes:
       - ./prometheus:/etc/prometheus
@@ -13,9 +13,12 @@ services:
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    mem_limit: 1024m
+    mem_reservation: 256m
+    cpus: '1.0'
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.3.0
     container_name: grafana
     ports:
       - "3007:3000"
@@ -23,12 +26,15 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
       - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+    env_file:
+      - .env
     restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 128m
+    cpus: '0.5'
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: cadvisor
     ports:
       - "8087:8080"
@@ -39,9 +45,12 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     restart: unless-stopped
+    mem_limit: 512m
+    mem_reservation: 128m
+    cpus: '0.5'
 
   alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.28.0
     container_name: alertmanager
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
@@ -51,6 +60,9 @@ services:
     ports:
       - "9100:9093"
     restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: '0.3'
 
   alertmanager-bridge:
     build:
@@ -60,6 +72,23 @@ services:
     ports:
       - "5001:5001"
     restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: '0.3'
+
+  docker-info-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.docker-info-exporter
+    container_name: docker-info-exporter
+    ports:
+      - "9108:9108"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 64m
+    cpus: '0.3'
 
 volumes:
   prometheus_data:
