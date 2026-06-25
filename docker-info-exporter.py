@@ -8,7 +8,6 @@ import os
 import json
 import time
 import http.server
-import urllib.request
 
 DOCKER_SOCK = os.environ.get("DOCKER_SOCK", "/var/run/docker.sock")
 LISTEN_ADDR = os.environ.get("LISTEN_ADDR", "0.0.0.0")
@@ -19,10 +18,10 @@ containers = {}
 
 def docker_api(path):
     """Call Docker API via Unix socket and return parsed JSON."""
-    import http.client
+    import socket
     sock = None
     try:
-        sock = __import__('socket').socket(__import__('socket').AF_UNIX, __import__('socket').SOCK_STREAM)
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.settimeout(5)
         sock.connect(DOCKER_SOCK)
         conn = http.client.HTTPConnection("localhost", timeout=5)
@@ -80,7 +79,7 @@ class MetricsHandler(http.server.BaseHTTPRequestHandler):
             payload = generate_metrics()
             self.send_response(200)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
-            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Content-Length", str(len(payload.encode())))
             self.end_headers()
             self.wfile.write(payload.encode())
         else:
@@ -99,7 +98,10 @@ if __name__ == "__main__":
     def refresh_loop():
         while True:
             time.sleep(REFRESH_INTERVAL)
-            update_containers()
+            try:
+                update_containers()
+            except Exception as e:
+                print(f"[docker-info-exporter] Refresh error: {e}", flush=True)
     t = threading.Thread(target=refresh_loop, daemon=True)
     t.start()
 
