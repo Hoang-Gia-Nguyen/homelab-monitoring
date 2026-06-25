@@ -90,6 +90,18 @@ services:
     mem_reservation: 64m
     cpus: '0.3'
 
+  ci-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci-monitor
+    container_name: ci-monitor
+    ports:
+      - "9109:9109"
+    environment:
+      - GH_TOKEN=${GH_TOKEN:-}
+    restart: unless-stopped
+
+
 volumes:
   prometheus_data:
   grafana_data:

@@ -1,0 +1,20 @@
+FROM python:3-alpine
+
+# Install GitHub CLI
+RUN apk add --no-cache github-cli
+
+# Create app directory
+WORKDIR /app
+
+# Copy scripts
+COPY scripts/ci_monitor.sh /app/ci_monitor.sh
+COPY scripts/ci_monitor_exporter.py /app/ci_monitor_exporter.py
+
+RUN chmod +x /app/ci_monitor.sh /app/ci_monitor_exporter.py
+
+# Environment variables
+ENV LISTEN_PORT=9109
+
+EXPOSE 9109
+
+CMD ["python", "/app/ci_monitor_exporter.py", "9109"]
