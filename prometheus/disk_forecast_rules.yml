@@ -7,16 +7,16 @@ groups:
       - record: disk_consumption_bytes_per_sec
         expr: >
           deriv(node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h])
-          < 0
+          < bool 0
           * -deriv(node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}[6h])
 
       # Days until each filesystem mount reaches 100% capacity.
-      # Only returns a value when the disk is actively filling up (consumption > 0).
+      # Shows a large sentinel value when consumption is flat (stable/freeing disk).
       - record: predict_days_until_full
         expr: >
-          disk_consumption_bytes_per_sec > 0
-          * node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
-          / (disk_consumption_bytes_per_sec * 86400)
+          node_filesystem_free_bytes{mountpoint!~"^/.+/.*|/System/.*|/Volumes/.*/MobileBackups.*|/private/var/vm|/dev"}
+          / clamp_min(disk_consumption_bytes_per_sec, 1e-12)
+          / 86400
 
       # Predict free bytes 7 days from now (for easier alert rule usage)
       - record: predict_free_bytes_7d

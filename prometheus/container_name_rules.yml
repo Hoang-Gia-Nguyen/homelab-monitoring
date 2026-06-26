@@ -3,9 +3,69 @@
 groups:
   - name: container_names
     rules:
+      # CPU usage rate per container (in cores) — averaged over 1 minute
+      # Joined with docker_container_info to carry the container_name label
+      - record: container:cpu:rate1m
+        expr: >
+          label_replace(
+            rate(container_cpu_usage_seconds_total{id=~"/docker/.+"}[1m]),
+            "container_id_short",
+            "$1",
+            "id",
+            "/docker/(.{12}).*"
+          )
+          * on (container_id_short) group_left (container_name)
+          (
+            label_replace(
+              docker_container_info{state="running"},
+              "container_id_short",
+              "$1",
+              "container_id",
+              "(.*)"
+            )
+            * 0
+            + 1
+          )
+
+      # Memory working set per container (in bytes)
+      # Joined with docker_container_info to carry the container_name label
+      - record: container:memory:working_set_bytes
+        expr: >
+          label_replace(
+            container_memory_working_set_bytes{id=~"/docker/.+"},
+            "container_id_short",
+            "$1",
+            "id",
+            "/docker/(.{12}).*"
+          )
+          * on (container_id_short) group_left (container_name)
+          (
+            label_replace(
+              docker_container_info{state="running"},
+              "container_id_short",
+              "$1",
+              "container_id",
+              "(.*)"
+            )
+            * 0
+            + 1
+          )
+
+      # Map cAdvisor container IDs to human-readable names
       - record: container_name
         expr: >
-          docker_container_info{state="running"}
-          * on(container_id)
-            group_left(container_label_com_docker_compose_service)
-          container_cpu_load_average_10s
+          label_replace(
+            container_cpu_load_average_10s{id=~"/docker/.+"},
+            "container_id_short",
+            "$1",
+            "id",
+            "/docker/(.{12}).*"
+          )
+          * on (container_id_short) group_left (container_name)
+          label_replace(
+            docker_container_info{state="running"},
+            "container_id_short",
+            "$1",
+            "container_id",
+            "(.*)"
+          )
